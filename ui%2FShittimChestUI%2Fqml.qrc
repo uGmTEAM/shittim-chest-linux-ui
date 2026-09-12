@@ -1,0 +1,25 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Main.qml</file>
+    </qresource>
+    <qresource prefix="/spine/characters/arona">
+        <file>resources/spine/characters/arona/arona_spr.atlas</file>
+        <file>resources/spine/characters/arona/arona_spr.skel</file>
+        <file>resources/spine/characters/arona/arona_spr.png</file>
+    </qresource>
+    <qresource prefix="/spine/characters/plana">
+        <file>resources/spine/characters/plana/NP0035_spr.atlas</file>
+        <file>resources/spine/characters/plana/NP0035_spr.skel</file>
+        <file>resources/spine/characters/plana/NP0035_spr.png</file>
+    </qresource>
+    <qresource prefix="/spine/backgrounds/daytime">
+        <file>resources/spine/backgrounds/daytime/arona_workpage_daytime_2.atlas</file>
+        <file>resources/spine/backgrounds/daytime/arona_workpage_daytime_2.skel</file>
+        <file>resources/spine/backgrounds/daytime/arona_workpage_daytime_2.png</file>
+    </qresource>
+    <qresource prefix="/spine/backgrounds/nighttime">
+        <file>resources/spine/backgrounds/nighttime/arona_workpage_nighttime_2.atlas</file>
+        <file>resources/spine/backgrounds/nighttime/arona_workpage_nighttime_2.skel</file>
+        <file>resources/spine/backgrounds/nighttime/arona_workpage_nighttime_2.png</file>
+    </qresource>
+</RCC>
