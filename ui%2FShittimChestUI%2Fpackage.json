@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@esotericsoftware/spine-core": "^4.3.13",
+    "@esotericsoftware/spine-player": "^4.3.13",
+    "@esotericsoftware/spine-webgl": "^4.3.13"
+  }
+}
