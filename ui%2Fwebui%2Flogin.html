@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>AI OS - 登录</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- 交互保护：全局拦截拖拽/放置/右键，防止异常交互 -->
+    <script>
+        (function () {
+            // 禁止一切元素拖拽（图片、链接、视频等被拖出/拖动）
+            ['dragstart', 'drag', 'dragend', 'drop', 'dragover'].forEach(function (ev) {
+                document.addEventListener(ev, function (e) { e.preventDefault(); }, true);
+            });
+            // 禁止右键菜单长按调用
+            document.addEventListener('contextmenu', function (e) { e.preventDefault(); }, true);
+            // 禁止全文选择
+            document.addEventListener('selectstart', function (e) { e.preventDefault(); }, true);
+        })();
+    </script>
+</head>
+<body>
+    <!-- 页面转场白色遮罩（用于退出时渐白） -->
+    <div id="page-transition" style="position:fixed;inset:0;z-index:9999;background:#fff;opacity:0;pointer-events:none;transition:opacity 0.4s ease;"></div>
+    <!-- 背景（登录背景图）已在 style 中设置，仅占位 -->
+    <div id="background" class="background"></div>
+
+    <!-- 加载提示（极简） -->
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在加载登录...</div>
+    </div>
+
+    <!-- 错误提示 -->
+    <div id="error-box" class="error-box hidden">
+        <div class="error-content">
+            <h3>⚠ 加载失败</h3>
+            <p id="error-message"></p>
+            <button id="error-retry" class="retry-btn">重试</button>
+        </div>
+    </div>
+
+    <!-- 本地 React 运行库 (无外网依赖) → 先加载，以便立即挂载登录 -->
+    <script src="vendor/react.min.js"></script>
+    <script src="vendor/react-dom.min.js"></script>
+    <script src="vendor/babel.min.js"></script>
+    <!-- 登录界面 (JSX 由 babel-standalone 在浏览器内编译) -->
+    <script type="text/babel" src="js/login.jsx"></script>
+    <!-- 底部面板标准组件 -->
+    <script src="js/bottom-panel.js"></script>
+</body>
+</html>
