@@ -1,0 +1,35 @@
+{
+    "_comment": "什亭之匣 AI OS 主配置文件 - 由 install.sh 生成",
+    "version": "1.0.0",
+    "install_path": "/opt/ai-os",
+
+    "username": "老师",
+    "ai_greeting": "老师",
+    "setup_password": "",
+
+    "webui_port": 8099,
+    "gateway_port": 8081,
+    "gateway_url": "http://127.0.0.1:8081",
+
+    "prompt_path": "/opt/ai-os/arona.txt",
+
+    "ai": {
+        "provider": "deepseek",
+        "api_key": "",
+        "api_base_url": "https://api.deepseek.com",
+        "default_model": "deepseek-chat"
+    },
+
+    "providers": {
+        "openai":     { "api_base_url": "https://api.openai.com/v1",  "models": ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"] },
+        "anthropic":  { "api_base_url": "https://api.anthropic.com",   "models": ["claude-3-5-sonnet-20241022", "claude-3-haiku-20240307"] },
+        "deepseek":   { "api_base_url": "https://api.deepseek.com",   "models": ["deepseek-chat", "deepseek-reasoner"] },
+        "ollama":     { "api_base_url": "http://localhost:11434/v1",  "models": ["llama3.2", "qwen2.5:7b"] },
+        "custom":     { "api_base_url": "http://localhost:8080/v1",   "models": ["custom-model"] }
+    },
+
+    "display_manager": {
+        "provider": "sddm",
+        "enabled": true
+    }
+}

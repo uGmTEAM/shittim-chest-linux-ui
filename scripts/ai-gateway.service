@@ -1,0 +1,29 @@
+[Unit]
+Description=AI Gateway Service
+Documentation=https://github.com/ai-os/gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/ai-os/gateway
+ExecStart=/usr/bin/node /opt/ai-os/gateway/server.mjs
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/ai-gateway /opt/ai-os/gateway/config.json
+
+# Environment
+EnvironmentFile=/etc/ai-gateway/env
+
+[Install]
+WantedBy=multi-user.target

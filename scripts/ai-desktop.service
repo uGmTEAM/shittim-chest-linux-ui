@@ -1,0 +1,17 @@
+[Unit]
+Description=AI OS Desktop Environment
+After=display-manager.service ai-gateway.service
+Requires=ai-gateway.service
+
+[Service]
+Type=simple
+User=aiuser
+Environment=DISPLAY=:0
+Environment=XDG_SESSION_TYPE=x11
+WorkingDirectory=/home/aiuser
+ExecStart=/usr/bin/node /opt/ai-os/gui/app.mjs
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical.target

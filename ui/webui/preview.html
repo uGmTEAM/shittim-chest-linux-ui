@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动画预览 - 阿罗娜</title>
+    <script src="js/spine-player.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #1a1a2e;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            color: #e0e0e0;
+        }
+        #app { display: flex; height: 100vh; }
+
+        /* 左侧画布 */
+        #canvas-area {
+            flex: 1;
+            position: relative;
+            background: #111;
+            overflow: hidden;
+        }
+        #spine-container {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50vw;
+            height: 100vh;
+        }
+        #spine-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        #track-display {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 15px;
+            color: #7dd3fc;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border: 1px solid rgba(125,211,252,0.3);
+            text-align: center;
+            line-height: 1.6;
+        }
+        #track-display .track-body { color: #7dd3fc; }
+        #track-display .track-face { color: #f0abfc; }
+        #track-display .track-sep { color: #555; margin: 0 6px; }
+
+        /* 右侧面板 */
+        #panel {
+            width: 340px;
+            background: rgba(20,20,40,0.95);
+            border-left: 1px solid rgba(125,211,252,0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #panel-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            text-align: center;
+        }
+        #panel-header h2 {
+            color: #7dd3fc;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        #panel-header p {
+            color: #888;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        /* 标签切换 */
+        #tab-bar {
+            display: flex;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            flex-shrink: 0;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            background: transparent;
+            color: #888;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn:hover { color: #ccc; }
+        .tab-btn.active {
+            color: #7dd3fc;
+            border-bottom-color: #7dd3fc;
+        }
+        .tab-btn.face-tab.active {
+            color: #f0abfc;
+            border-bottom-color: #f0abfc;
+        }
+
+        #search-box {
+            margin: 8px 12px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(125,211,252,0.2);
+            background: rgba(0,0,0,0.3);
+            color: #e0e0e0;
+            font-size: 12px;
+            outline: none;
+            flex-shrink: 0;
+        }
+        #search-box:focus { border-color: #7dd3fc; }
+        #search-box::placeholder { color: rgba(255,255,255,0.25); }
+
+        #anim-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-content: flex-start;
+        }
+        #anim-list::-webkit-scrollbar { width: 5px; }
+        #anim-list::-webkit-scrollbar-track { background: transparent; }
+        #anim-list::-webkit-scrollbar-thumb { background: rgba(125,211,252,0.2); border-radius: 3px; }
+
+        .anim-btn {
+            padding: 5px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(125,211,252,0.2);
+            background: rgba(125,211,252,0.08);
+            color: #b0d0f0;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .anim-btn:hover {
+            background: rgba(125,211,252,0.2);
+            border-color: #7dd3fc;
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .anim-btn.active {
+            background: rgba(125,211,252,0.3);
+            border-color: #7dd3fc;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(125,211,252,0.3);
+        }
+        /* 面部表情按钮样式 */
+        .anim-btn.face-btn {
+            border-color: rgba(240,171,252,0.25);
+            background: rgba(240,171,252,0.08);
+            color: #d4a0e8;
+        }
+        .anim-btn.face-btn:hover {
+            background: rgba(240,171,252,0.2);
+            border-color: #f0abfc;
+            color: #fff;
+        }
+        .anim-btn.face-btn.active {
+            background: rgba(240,171,252,0.3);
+            border-color: #f0abfc;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(240,171,252,0.3);
+        }
+
+        #bottom-bar {
+            padding: 8px 12px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        .ctrl-btn {
+            padding: 5px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.06);
+            color: #ccc;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .ctrl-btn:hover {
+            background: rgba(125,211,252,0.15);
+            border-color: #7dd3fc;
+            color: #fff;
+        }
+        #loop-label {
+            font-size: 11px;
+            color: #888;
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        #loop-label input { accent-color: #4ade80; }
+        #count-label {
+            font-size: 11px;
+            color: #666;
+            padding: 0 12px 4px;
+            flex-shrink: 0;
+        }
+
+        #loading {
+            position: fixed;
+            inset: 0;
+            background: #1a1a2e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: opacity 0.5s;
+        }
+        #loading.hidden { opacity: 0; pointer-events: none; }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(125,211,252,0.2);
+            border-top-color: #7dd3fc;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: #7dd3fc; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">加载阿罗娜骨骼动画...</div>
+    </div>
+
+    <div id="app">
+        <div id="canvas-area">
+            <div id="spine-container"></div>
+            <div id="track-display">就绪</div>
+        </div>
+        <div id="panel">
+            <div id="panel-header">
+                <h2>阿罗娜动画预览</h2>
+                <p>身体 + 面部表情双轨道叠加</p>
+            </div>
+            <div id="tab-bar">
+                <button class="tab-btn active" data-tab="body">身体动画</button>
+                <button class="tab-btn face-tab" data-tab="face">面部表情</button>
+            </div>
+            <input id="search-box" type="text" placeholder="搜索动画名..." />
+            <div id="anim-list"></div>
+            <div id="count-label"></div>
+            <div id="bottom-bar">
+                <button class="ctrl-btn" id="btn-clear-face">清除面部</button>
+                <button class="ctrl-btn" id="btn-stop">停止</button>
+                <button class="ctrl-btn" id="btn-reset">重置</button>
+                <label id="loop-label">
+                    <input type="checkbox" id="loop-check" checked /> 循环
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById("spine-container");
+        const animList = document.getElementById("anim-list");
+        const trackDisplay = document.getElementById("track-display");
+        const searchBox = document.getElementById("search-box");
+        const loopCheck = document.getElementById("loop-check");
+        const countLabel = document.getElementById("count-label");
+        const loading = document.getElementById("loading");
+
+        let spinePlayer = null;
+        let bodyAnims = [];     // 非纯数字的动画（身体）
+        let faceAnims = [];     // 纯数字的动画（面部表情 00-99）
+        let currentBody = null; // 当前轨道0播放的动画名
+        let currentFace = null; // 当前轨道1播放的动画名
+        let currentTab = "body";
+
+        const BASE_PATH = "assets/spine/characters/arona/";
+        const SKEL_NAME = "arona_spr.skel";
+        const ATLAS_NAME = "arona_spr.atlas";
+
+        // 判断是否为身体动画（仅 Idle_01 是身体，其余都是面部表情）
+        function isBodyAnim(name) {
+            return name.toLowerCase() === "idle_01";
+        }
+
+        // 加载 Spine
+        spinePlayer = new spine.SpinePlayer(container, {
+            binaryUrl: BASE_PATH + SKEL_NAME,
+            atlasUrl: BASE_PATH + ATLAS_NAME,
+            scale: 1.0,
+            showControls: false,
+            alpha: true,
+            backgroundColor: "00000000",
+            premultipliedAlpha: false,
+            showLoading: false,
+            animation: "Idle_01",  // 让 Player 自动处理初始动画
+            success: function(player) {
+                if (player.skeleton && player.skeleton.data) {
+                    const all = player.skeleton.data.animations.map(a => a.name);
+                    bodyAnims = all.filter(n => isBodyAnim(n));
+                    faceAnims = all.filter(n => !isBodyAnim(n)).sort();
+                }
+                loading.classList.add("hidden");
+                currentBody = "Idle_01";
+                renderList(currentTab);
+                updateTrackDisplay();
+                countLabel.textContent = "身体 " + bodyAnims.length + " | 面部 " + faceAnims.length;
+            },
+            error: function(msg, reason) {
+                loading.querySelector(".loading-text").textContent = "加载失败: " + msg;
+                console.error("Spine load error:", msg, reason);
+            }
+        });
+
+        // 渲染当前标签页的按钮列表
+        function renderList(tab) {
+            const anims = tab === "body" ? bodyAnims : faceAnims;
+            const q = searchBox.value.toLowerCase();
+            const filtered = q ? anims.filter(n => n.toLowerCase().includes(q)) : anims;
+
+            animList.innerHTML = "";
+            filtered.forEach(name => {
+                const btn = document.createElement("button");
+                const isFace = tab === "face";
+                btn.className = "anim-btn" + (isFace ? " face-btn" : "");
+                btn.textContent = name;
+                // 高亮当前激活的
+                if ((isFace && currentFace === name) || (!isFace && currentBody === name)) {
+                    btn.classList.add("active");
+                }
+                btn.addEventListener("click", () => {
+                    if (isFace) {
+                        playFace(name);
+                    } else {
+                        playBody(name);
+                    }
+                });
+                animList.appendChild(btn);
+            });
+        }
+
+        // 播放身体动画（轨道0）
+        function playBody(name) {
+            if (!spinePlayer) return;
+            currentBody = name;
+            const loop = loopCheck.checked;
+            try {
+                // 使用 Player 的 setAnimation（自动处理 viewport，始终走轨道 0）
+                spinePlayer.setAnimation(name, loop);
+                spinePlayer.paused = false;
+                // 如果有面部表情，重新叠加到轨道1
+                if (currentFace) {
+                    spinePlayer.animationState.setAnimation(1, currentFace, loop);
+                }
+                updateTrackDisplay();
+                renderList(currentTab);
+            } catch (e) {
+                console.warn("Failed to play body:", name, e);
+            }
+        }
+
+        // 播放面部表情（轨道1）
+        function playFace(name) {
+            if (!spinePlayer) return;
+            currentFace = name;
+            const loop = loopCheck.checked;
+            try {
+                // 面部表情独立播放到轨道1，与身体动画叠加
+                spinePlayer.animationState.setAnimation(1, name, loop);
+                spinePlayer.paused = false;
+                updateTrackDisplay();
+                renderList(currentTab);
+            } catch (e) {
+                console.warn("Failed to play face:", name, e);
+            }
+        }
+
+        // 清除面部表情
+        function clearFace() {
+            if (!spinePlayer) return;
+            currentFace = null;
+            try {
+                spinePlayer.animationState.setEmptyAnimation(1, 0);
+                updateTrackDisplay();
+                renderList(currentTab);
+            } catch (e) {}
+        }
+
+        // 更新轨道信息显示
+        function updateTrackDisplay() {
+            let html = "";
+            if (currentBody) {
+                html += '<span class="track-body">身体: ' + currentBody + '</span>';
+            }
+            if (currentFace) {
+                html += '<span class="track-sep">|</span>';
+                html += '<span class="track-face">面部: ' + currentFace + '</span>';
+            }
+            if (!currentBody && !currentFace) {
+                html = "就绪";
+            }
+            trackDisplay.innerHTML = html;
+        }
+
+        // 标签切换
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                currentTab = btn.dataset.tab;
+                searchBox.value = "";
+                renderList(currentTab);
+            });
+        });
+
+        // 搜索过滤
+        searchBox.addEventListener("input", () => {
+            renderList(currentTab);
+        });
+
+        // 清除面部
+        document.getElementById("btn-clear-face").addEventListener("click", clearFace);
+
+        // 停止
+        document.getElementById("btn-stop").addEventListener("click", () => {
+            if (!spinePlayer) return;
+            try {
+                spinePlayer.pause();
+                trackDisplay.innerHTML = "已暂停";
+                document.querySelectorAll(".anim-btn").forEach(b => b.classList.remove("active"));
+            } catch (e) {}
+        });
+
+        // 重置
+        document.getElementById("btn-reset").addEventListener("click", () => {
+            if (!spinePlayer) return;
+            try {
+                if (spinePlayer.skeleton) spinePlayer.skeleton.setToSetupPose();
+                if (spinePlayer.animationState) {
+                    const entry = spinePlayer.animationState.setEmptyAnimation(0, 0);
+                }
+                currentBody = null;
+                currentFace = null;
+                trackDisplay.innerHTML = "重置姿势";
+                renderList(currentTab);
+            } catch (e) {}
+        });
+
+        // 键盘快捷键
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                document.getElementById("btn-stop").click();
+            }
+            if (e.key === "f" && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                searchBox.focus();
+            }
+        });
+    </script>
+</body>
+</html>

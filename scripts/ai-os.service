@@ -1,0 +1,27 @@
+[Unit]
+Description=什亭之匣 AI OS 全套服务
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/ai-os
+Environment=NODE_ENV=production
+EnvironmentFile=-/opt/ai-os/config.env
+ExecStart=/bin/bash -c '/opt/ai-os/bin/start-all.sh'
+ExecStop=/bin/bash -c '/opt/ai-os/bin/stop-all.sh'
+Restart=on-failure
+RestartSec=3
+
+# 资源限制
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# 日志
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ai-os
+
+[Install]
+WantedBy=multi-user.target

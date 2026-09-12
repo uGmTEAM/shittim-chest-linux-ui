@@ -1,0 +1,15 @@
+{
+  "name": "ai-gateway",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.0",
+    "cheerio": "^1.0.0",
+    "fastify": "^5.0.0",
+    "node-cron": "^3.0.3"
+  }
+}
